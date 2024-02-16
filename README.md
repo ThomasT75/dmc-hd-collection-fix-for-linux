@@ -1,6 +1,6 @@
 # dmc-hd-collection-fix-for-linux
-Fixes Cutscreens for dmc1 in the dmc hd collection
-yes i realized that the problem happens on dmc2 and dmc3 too give a decade to fix 
+Fixes Cutscreens in the dmc hd collection
+
 
 ## USAGE
 Change the **gamefolder** variable in the [Script](dmc_hd_collection_video_fix.sh) to the folder of the game that has this folder structure:
