@@ -20,10 +20,18 @@
 # ffmpeg
 # RTFM
 
-#variables
+#user variables
 gamefolder=""
-video_dir="$gamefolder/data/dmc1/Video/" #video folder is Uppercased while audio folder is not don't ask why
-backup_dir="$gamefolder/data/dmc1/Video_bk/"
+
+#program variables
+dmc1_dir="$gamefolder/data/dmc1/Video/" #video folder is Uppercased while audio folder is not don't ask why
+dmc2_dir="$gamefolder/data/dmc2/Video/"
+dmc3_dir="$gamefolder/data/dmc3/Video/"
+dmcL_dir="$gamefolder/data/dmclauncher/video/"
+video_dir=""
+backup_dir=""
+count_to="77" #there are 77 videos files to go tho
+count=0
 
 #check if this system has ffmpeg installed
 if [ ! command -v ffmpeg &> /dev/null ]; then
@@ -31,28 +39,55 @@ if [ ! command -v ffmpeg &> /dev/null ]; then
   exit 127
 fi 
 
-#make backup if it doesn't exist
-if [ ! -d "$backup_dir" ]; then
-  mv "$video_dir" "$backup_dir"
-fi
+#oh no im not using a for loop
+#anyway you can comment out remux_dmc_fmv if you want to skip remuxing a certain game
+main() {
+  video_dir="$dmc1_dir"
+  update_backup_dir
+  remux_dmc_fmv
+  video_dir="$dmc2_dir"
+  update_backup_dir
+  remux_dmc_fmv
+  video_dir="$dmc3_dir"
+  update_backup_dir
+  remux_dmc_fmv
+  video_dir="$dmcL_dir"
+  update_backup_dir
+  remux_dmc_fmv
+}
 
-#make folder because we might have moved before
-#error out and continue otherwise 
-mkdir "$video_dir"
+#lets not repeat this fragile code more than once
+update_backup_dir() {
+  suffix=$(basename -- "$video_dir") 
+  backup_dir="${video_dir%$suffix/}/video_bk/" #will break if the video_dir var doesn't end with a /
+}
 
-#just so you know when it will end
-count=0
-echo "$count/31"
+#what actually does the work
+remux_dmc_fmv() {
+  #make backup if it doesn't exist
+  if [ ! -d "$backup_dir" ]; then
+    mv "$video_dir" "$backup_dir"
+  fi
 
-for fmv in "${backup_dir}"*
-do 
-  #convert to mp4 and flip image vertically as per https://www.nexusmods.com/devilmaycryhdcollection/mods/51?tab=description
-  ffmpeg -loglevel error -stats -i "$fmv" -f mp4 -vf vflip "${fmv/$backup_dir/$video_dir}"
-  let count++
-  echo "$count/31"
+  #make folder because we might have moved before
+  #error out and continue otherwise 
+  mkdir "$video_dir"
 
-done
+  #just so you know when it will end
+  echo "$count/$count_to"
 
-echo "done you can delete:" 
-echo "    $backup_dir"
-echo "if you don't want to keep the original files"
+  for fmv in "${backup_dir}"*
+  do 
+    #convert to mp4 and flip image vertically as per https://www.nexusmods.com/devilmaycryhdcollection/mods/51?tab=description
+    ffmpeg -loglevel error -stats -i "$fmv" -f mp4 -vf vflip "${fmv/$backup_dir/$video_dir}"
+    let count++
+    echo "$count/$count_to"
+
+  done
+
+  echo "Done for this game you can delete:" 
+  echo "    $backup_dir"
+  echo "If you don't want to keep the original files"
+}
+
+main "$@"; exit
